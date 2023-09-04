@@ -114,3 +114,10 @@ product_weight_g                | Weight of the products ordered in grams
 product_length_cm               | Length of the products ordered in centimeters
 product_height_cm               | Height of the products ordered in centimeters
 product_width_cm                | Width of the product ordered in centimeters
+
+#### Schema
+
+<img src="./images/schema.png" alt="schema"/>
+
+## Analysis
+
