@@ -195,4 +195,103 @@ EVENING is from 18:00 PM to 21:PM, and the other time is at NIGHT.
 
 
 - Most of the orders (ie. 32,366) were placed in the afternoon. Here I have assumed the afternoon time period 13:00 to 17:00 (include both)
-- Least orders (2127) were placed in the DAWN. Here I have assumed the DAWN time period 4:00 AM to 7:59 AM (include both)
+- Least orders (2127) were placed in the DAWN. Here I have assumed the DAWN time period is 4:00 AM to 7:59 AM (including both)
+
+6. Month-on-month orders by states
+
+```
+SELECT c.customer_state, EXTRACT(YEAR FROM o.order_purchase_timestamp) AS year,EXTRACT (MONTH FROM o.order_purchase_timestamp) AS month, COUNT(o.order_id) AS no_of_orders
+FROM `ecomm.orders` AS o
+INNER JOIN `ecomm.customers` AS c
+ON o.customer_id = c.customer_id
+GROUP BY 1, 2, 3
+ORDER BY 1, 2, 3;
+```
+
+Output:
+<img src="./images/ss6.png" alt="result"/>
+
+7. Distribution of customers across the states in Brazil
+
+```
+WITH my_cte AS (
+SELECT COUNT(DISTINCT(c.customer_id)) AS total_no_of_customers
+FROM `target.orders` o
+INNER JOIN `target.customers` c
+ON o.customer_id = c.customer_id
+)
+
+
+SELECT c.customer_state,
+COUNT(DISTINCT(c.customer_id)) AS no_of_customers,
+(COUNT(DISTINCT(c.customer_id))/ (SELECT total_no_of_customers FROM my_cte))*100 AS percentage
+FROM `target.orders` o
+INNER JOIN `target.customers` c
+ON o.customer_id = c.customer_id
+GROUP BY c.customer_state
+ORDER BY no_of_customers DESC;
+```
+
+Output:
+<img src="./images/ss7.png" alt="result"/>
+
+8. Get % increase in cost of orders from 2017 to 2018 (include months between Jan to Aug only) - You can use the “payment_value” column in the payments table
+
+```
+
+WITH order_analysis AS (
+SELECT
+EXTRACT(YEAR FROM o.order_purchase_timestamp) AS year,
+EXTRACT(MONTH FROM o.order_purchase_timestamp) AS month,
+SUM(p.payment_value) total_cost_per_month,
+FROM `ecomm.orders` o
+INNER JOIN `ecomm.payments` p
+ON o.order_id = p.order_id
+WHERE DATE(o.order_purchase_timestamp) BETWEEN DATE('2017-01-01') AND DATE('2018-08-01')
+GROUP BY year,month
+ORDER BY year,month
+)
+
+SELECT oa.year,oa.month,oa.total_cost_per_month,
+((oa.total_cost_per_month - LAG(oa.total_cost_per_month)  OVER(ORDER BY oa.year,oa.month))/oa.total_cost_per_month)*100 AS per_of_increment FROM order_analysis oa
+ORDER BY oa.year,oa.month
+```
+Output:
+<img src="./images/ss8.png" alt="result"/>
+
+9. Mean & Sum of price and freight value by customer state
+
+```
+SELECT  c.customer_state,
+AVG(p.payment_value) AS mean_payment_value,
+SUM(p.payment_value) AS total_cost ,
+AVG(oi.freight_value) AS mean_freight_value,
+SUM(oi.freight_value) AS total_freight_value
+FROM `target.orders` o
+INNER JOIN `target.customers` c
+ON o.customer_id = c.customer_id
+INNER JOIN `target.payments` p
+ON o.order_id = p.order_id
+INNER JOIN `target.order_items` oi
+ON o.order_id = oi.order_id
+GROUP BY c.customer_state
+ORDER BY total_cost
+```
+
+Output:
+<img src="./images/ss9.png" alt="result"/>
+
+10. Analysis of sales, freight, and delivery time
+- Calculate days between purchasing, delivering, and estimated delivery
+- Find time_to_delivery & diff_estimated_delivery. The formula for the same given
+
+```
+SELECT o.order_id,
+DATE_DIFF(o.order_purchase_timestamp, o.order_delivered_customer_date, DAY) AS time_to_delivery,
+DATE_DIFF(o.order_estimated_delivery_date, o.order_delivered_customer_date , DAY) AS diff_estimated_delivery
+FROM `ecomm.orders` o;
+```
+
+Output:
+<img src="./images/ss10.png" alt="result"/>
+
