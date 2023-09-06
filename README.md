@@ -171,3 +171,28 @@ Output:
 - Maximum orders in 11/2017
 - Minimum orders in 12/2016
 
+5. What time do Brazilian customers tend to buy (Dawn, Morning, Afternoon or Night)?
+
+```
+SELECT COUNT(o.order_purchase_timestamp) AS no_of_orders,
+CASE
+ WHEN EXTRACT(HOUR FROM o.order_purchase_timestamp) >= 4 AND EXTRACT(HOUR FROM o.order_purchase_timestamp) <= 7 THEN 'DAWN'
+ WHEN EXTRACT(HOUR FROM o.order_purchase_timestamp) >= 8 AND EXTRACT(HOUR FROM o.order_purchase_timestamp) <= 12 THEN 'MORNING'
+ WHEN EXTRACT(HOUR FROM o.order_purchase_timestamp) >= 13 AND EXTRACT(HOUR FROM o.order_purchase_timestamp) <= 17 THEN 'AFTERNOON'
+ WHEN EXTRACT(HOUR FROM o.order_purchase_timestamp) >= 18 AND EXTRACT(HOUR FROM o.order_purchase_timestamp) <= 21 THEN 'EVENING'
+ ELSE 'NIGHT'
+END AS ordering_time_period
+FROM `ecomm.orders` o
+GROUP BY ordering_time_period
+ORDER BY no_of_orders;
+```
+
+Output:
+<img src="./images/ss5.png" alt="result"/>
+
+Here I assume  DAWN is from 4:00 AM to 7:59 AM, Morning is from 8:00 AM to 12:59 PM, AFTERNOON is from 13:00 PM to 17:59 PM, 
+EVENING is from 18:00 PM to 21:PM, and the other time is at NIGHT. 
+
+
+- Most of the orders (ie. 32,366) were placed in the afternoon. Here I have assumed the afternoon time period 13:00 to 17:00 (include both)
+- Least orders (2127) were placed in the DAWN. Here I have assumed the DAWN time period 4:00 AM to 7:59 AM (include both)
