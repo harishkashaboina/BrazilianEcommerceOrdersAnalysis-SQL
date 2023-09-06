@@ -407,3 +407,140 @@ ORDER BY p.payment_installments;
 Output:
 <img src="./images/ss16.png" alt="result"/>
 
+##  Insights & Recommendations:
+
+1. Analysis of payment value for each order.
+
+```
+SELECT COUNT(p.order_id),
+CASE
+ WHEN p.payment_value BETWEEN 0 AND 3000 THEN 'Categ_1'
+ WHEN p.payment_value BETWEEN 3001 AND 6000  THEN 'Categ_2'
+ WHEN p.payment_value BETWEEN 6001 AND 9000  THEN 'Categ_3'
+ WHEN p.payment_value BETWEEN 9001 AND 12000 THEN 'Categ_4'
+ ELSE 'Categ_5'
+END AS order_payment_category
+FROM `ecomm.payments` p
+GROUP BY order_payment_category;
+```
+
+Output:
+<img src="./images/ss17.png" alt="result"/>
+
+Insights: The below query shows that most of the orders are under catg_1. 
+
+Recommendations: It means most of the order payment_value > 3000. So once the order payment value reaches nearer to 3000 then we can ask the customer to add some more items to the order so that the customer may get some more discounts/free delivery/ some points added to the account so that the customer can use those points to purchase other items.  Basically, we can recommend customers reach the nearest category by offering some more discounts/free delivery/ some points.
+
+2. Analysis of customer-ordered time
+
+```
+SELECT COUNT(o.order_purchase_timestamp) AS no_of_orders,
+CASE
+ WHEN EXTRACT(HOUR FROM o.order_purchase_timestamp) >= 4 AND EXTRACT(HOUR FROM o.order_purchase_timestamp) <= 7 THEN 'DAWN'
+ WHEN EXTRACT(HOUR FROM o.order_purchase_timestamp) >= 8 AND EXTRACT(HOUR FROM o.order_purchase_timestamp) <= 12 THEN 'MORNING'
+ WHEN EXTRACT(HOUR FROM o.order_purchase_timestamp) >= 13 AND EXTRACT(HOUR FROM o.order_purchase_timestamp) <= 17 THEN 'AFTERNOON'
+ WHEN EXTRACT(HOUR FROM o.order_purchase_timestamp) >= 18 AND EXTRACT(HOUR FROM o.order_purchase_timestamp) <= 21 THEN 'EVENING'
+ ELSE 'NIGHT'
+END AS ordering_time_period
+FROM `ecomm.orders` o
+GROUP BY ordering_time_period
+```
+Output:
+<img src="./images/ss18.png" alt="result"/> 
+
+Insights: The below query shows most of the orders (ie. 32,366) placed in the afternoon. Here I have assumed the afternoon time period of 13:00 to 17:00 (including both)
+
+Recommendation: In most order placing time we can give instance discounts to customers which he is preferring to buy. While adding items to the cart, we can display some discounts with limited time (Like the offer will end at 4:00:00 hrs). So that we can indirectly force customers to buy the product at that time only
+
+
+3. Most bought product categories by each customer.
+
+```
+SELECT c.customer_id,p.product_category, COUNT(p.product_category) as cnt
+FROM `ecomm.orders` o
+INNER JOIN `ecomm.customers` c
+ON o.customer_id = c.customer_id
+INNER JOIN `ecomm.order_items` oi
+ON o.order_id = oi.order_id
+INNER JOIN `ecomm.products` p
+ON oi.product_id = p.product_id
+GROUP BY c.customer_id, p.product_category
+ORDER BY COUNT(p.product_category) DESC;
+```
+
+Output:
+<img src="./images/ss19.png" alt="result"/> 
+
+Insights: Here is the query, which shows the most bought product categories by each customer.
+
+Recommendations: If any offers are declared on any item that belongs to the most bought product categories by each customer. We can send notifications to customers regarding the discount
+
+4. Delivery time for each state and city.
+
+```
+SELECT COUNT(o.order_id) AS no_of_orders,c.customer_state,c.customer_city
+FROM `ecomm.orders` o
+INNER JOIN `ecomm.customers` c
+ON o.customer_id = c.customer_id
+WHERE ABS(DATE_DIFF(o.order_purchase_timestamp, o.order_delivered_customer_date, DAY)) > 15
+GROUP BY c.customer_state,c.customer_city
+ORDER BY no_of_orders DESC;
+```
+
+Output:
+<img src="./images/ss20.png" alt="result"/> 
+
+Insights: The below query below gives information on order count across the state and city, whose order delivery takes more than 15 days.
+
+Recommendations: If delivery time is longer, most of the customers are not interested in buying products.  Based on the order count (if more) in a particular state or city we can take some necessary steps to deliver the order ASAP. So that customers may visit and buy the products again. And we may increase customer count in that state and city.
+
+
+5. Analysis of payment methods
+
+```
+SELECT p.payment_type, COUNT(p.payment_type) AS cnt
+FROM `ecomm.payments` p
+WHERE p.payment_type != 'not_defined'
+GROUP BY p.payment_type;
+```
+Output:
+<img src="./images/ss21.png" alt="result"/> 
+
+Insights:  The below query shows, that the most used payment method to purchase is a credit card and the least used one is debit_card 
+
+Recommendation: We can observe that the most used payment method is a credit card, So we can give some special discounts on orders which use a credit card as a payment method, We may increase sales.
+
+6. Seasonal sales analysis
+
+```
+SELECT EXTRACT(YEAR FROM o.order_purchase_timestamp) AS year,EXTRACT (MONTH FROM o.order_purchase_timestamp) AS month, COUNT(o.order_id) AS no_of_orders FROM `ecomm.orders` AS o GROUP BY 1, 2 ORDER BY 1, 2;
+```
+
+Output:
+<img src="./images/ss22.png" alt="result"/> 
+
+Insights:  Based on below query results,  Peaks sales happened in the period of November - May
+
+Recommendation:  So in this time period we can offer special discounts on most purchased categories based on state and city.  And in this time period, we can announce clearance sale so that we can clear old stock from inventory 
+
+7. Sales Analysis based on product category
+
+```
+SELECT p.product_category, COUNT(p.product_category) as cnt
+FROM `ecomm.orders` o
+INNER JOIN `ecomm.customers` c
+ON o.customer_id = c.customer_id
+INNER JOIN `ecomm.order_items` oi
+ON o.order_id = oi.order_id
+INNER JOIN `ecomm.products` p
+ON oi.product_id = p.product_id
+GROUP BY  p.product_category
+ORDER BY cnt DESC;
+```
+Output:
+<img src="./images/ss23.png" alt="result"/> 
+
+Insights: Based on the below query we can find most selling product category and least-selling category
+
+Recommendation: We can give some special discounts on most selling product categories. Also, we can concentrate on least selling product categories by considering below points, 1. Are we maintaining the quality of those products? 2. Are we maintaining all types of varieties of products 3. Offering those products at affordable prices etc.,
+
