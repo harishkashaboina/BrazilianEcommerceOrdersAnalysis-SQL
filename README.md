@@ -295,3 +295,115 @@ FROM `ecomm.orders` o;
 Output:
 <img src="./images/ss10.png" alt="result"/>
 
+11.  Group data by state, take mean of freight_value, time_to_delivery, diff_estimated_delivery
+
+```
+SELECT c.customer_state,
+AVG(oi.freight_value) AS mean_freight_value,
+AVG(DATE_DIFF(o.order_purchase_timestamp, o.order_delivered_customer_date, DAY)) AS time_to_delivery,
+AVG(DATE_DIFF(o.order_estimated_delivery_date, o.order_delivered_customer_date , DAY)) AS diff_estimated_delivery
+FROM `ecomm.orders` o
+INNER JOIN `ecomm.customers` c
+ON o.customer_id = c.customer_id
+INNER JOIN `ecomm.order_items` oi
+ON o.order_id = oi.order_id
+GROUP BY c.customer_state;
+```
+Output:
+<img src="./images/ss11.png" alt="result"/>
+
+12. Top 5 states with highest/lowest average freight value
+
+```
+SELECT c.customer_state,
+AVG(oi.freight_value) AS mean_freight_value,
+AVG(DATE_DIFF(o.order_purchase_timestamp, o.order_delivered_customer_date, DAY)) AS time_to_delivery,
+AVG(DATE_DIFF(o.order_estimated_delivery_date, o.order_delivered_customer_date , DAY)) AS diff_estimated_delivery
+FROM `ecomm.orders` o
+INNER JOIN `ecomm.customers` c
+ON o.customer_id = c.customer_id
+INNER JOIN `ecomm.order_items` oi
+ON o.order_id = oi.order_id
+GROUP BY c.customer_state
+ORDER BY mean_freight_value DESC
+LIMIT 5;
+```
+
+Output:
+<img src="./images/ss12.png" alt="result"/>
+
+13. Top 5 states with highest/lowest average time to delivery
+
+```
+SELECT c.customer_state,
+AVG(oi.freight_value) AS mean_freight_value,
+AVG(DATE_DIFF(o.order_purchase_timestamp, o.order_delivered_customer_date, DAY)) AS time_to_delivery,
+AVG(DATE_DIFF(o.order_estimated_delivery_date, o.order_delivered_customer_date , DAY)) AS diff_estimated_delivery
+FROM `ecomm.orders` o
+INNER JOIN `ecomm.customers` c
+ON o.customer_id = c.customer_id
+INNER JOIN `ecomm.order_items` oi
+ON o.order_id = oi.order_id
+GROUP BY c.customer_state
+ORDER BY time_to_delivery DESC
+LIMIT 5;
+```
+Output:
+<img src="./images/ss13.png" alt="result"/>
+
+14. Top 5 states where delivery is really fast/ not so fast compared to estimated date
+
+```
+SELECT c.customer_state,
+AVG(oi.freight_value) AS mean_freight_value,
+AVG(DATE_DIFF(o.order_purchase_timestamp, o.order_delivered_customer_date, DAY)) AS time_to_delivery,
+AVG(DATE_DIFF(o.order_estimated_delivery_date, o.order_delivered_customer_date , DAY)) AS diff_estimated_delivery
+FROM `ecomm.orders` o
+INNER JOIN `ecomm.customers` c
+ON o.customer_id = c.customer_id
+INNER JOIN `ecomm.order_items` oi
+ON o.order_id = oi.order_id
+GROUP BY c.customer_state
+ORDER BY diff_estimated_delivery ASC
+LIMIT 5;
+```
+
+Output:
+<img src="./images/ss14.png" alt="result"/>
+
+15. Month over Month count of orders for different payment types
+
+```
+SELECT
+EXTRACT(YEAR FROM o.order_purchase_timestamp) AS year,
+EXTRACT(MONTH FROM o.order_purchase_timestamp) AS month,
+SUM(p.payment_value) total_cost_per_month,
+p.payment_type,
+FROM `ecomm.orders` o
+INNER JOIN `ecomm.payments` p
+ON o.order_id = p.order_id
+GROUP BY year,month,p.payment_type
+HAVING p.payment_type != 'not_defined'
+ORDER BY year, month;
+```
+
+Output:
+<img src="./images/ss15.png" alt="result"/>
+
+- Here not considered the not_defined payment method. As we cannot group unknown (not_defined) payment methods into one group
+
+16. Count of orders based on the number of payment installments
+
+```
+SELECT
+p.payment_installments AS no_of_payment_installments,
+COUNT(o.order_id) AS total_no_of_orders
+FROM `ecomm.orders` o
+INNER JOIN `ecomm.payments` p
+ON o.order_id = p.order_id
+GROUP BY p.payment_installments
+ORDER BY p.payment_installments;
+```
+Output:
+<img src="./images/ss16.png" alt="result"/>
+
