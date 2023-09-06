@@ -120,4 +120,54 @@ product_width_cm                | Width of the product ordered in centimeters
 <img src="./images/schema.png" alt="schema"/>
 
 ## Analysis
+1. The data type of columns in a table
+
+```
+SELECT * FROM `TABLE_CATALOG.TABLE_SCHEMA.INFORMATION_SCHEMA.COLUMNS` 
+WHERE table_catalog='TABLE_CATALOG' and table_schema='TABLE_SCHEMA' and table_name='customers';
+```
+Here
+- TABLE_CATALOG: The project ID of the project that contains the dataset
+- TABLE_SCHEMA: The name of the dataset that contains the table also referred to as the datasetId
+
+Output:
+<img src="./images/ss1.png" alt="result"/>
+
+Similarly, we can check for other tables as well. 
+
+2. Time period for which the data is given
+
+```
+SELECT MIN(order_purchase_timestamp) AS min_order_date , MAX(order_purchase_timestamp) AS max_order_date FROM `ecomm.orders`
+```
+
+Max date: 2018-10-17 17:30:18 UTC
+Min date: 2016-09-04 21:15:19 UTC
+Observation: Order data between 09/2016 to 10/2018
+
+Output:
+<img src="./images/ss2.png" alt="result"/>
+
+3. Cities and States of customers ordered during the given period
+
+```
+SELECT  DISTINCT c.customer_city,c.customer_state FROM `target.orders` AS o INNER JOIN `target.customers` c ON o.customer_id = c.customer_id WHERE EXTRACT (YEAR FROM o.order_purchase_timestamp) BETWEEN 2016 AND 2018
+```
+
+Output:
+<img src="./images/ss3.png" alt="result"/>
+
+4. Checking orders growing trend on e-commerce in Brazil. And checking seasonality with peaks at specific months.
+
+```
+SELECT EXTRACT(YEAR FROM o.order_purchase_timestamp) AS year,EXTRACT (MONTH FROM o.order_purchase_timestamp) AS month, COUNT(o.order_id) AS no_of_orders FROM `ecomm.orders` AS o GROUP BY 1, 2 ORDER BY 1, 2;
+```
+
+Output:
+<img src="./images/ss4.png" alt="result"/>
+
+- Orders trends increasing from 01/2017 to 11/2017
+- Orders trends decreasing from 03/2018 to 07/2018
+- Maximum orders in 11/2017
+- Minimum orders in 12/2016
 
